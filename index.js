@@ -26,29 +26,26 @@ async function sortHackerNewsArticles() {
 
     //loop through 100 articles and increment counter at the end of each loop
     for (let i = 0; i < 100; i++) {
-        //assign title, date, and rank to respective elements
-        const [title, date, rank] = await Promise.all([
-            page.locator(".titleline").nth(counter).innerText(),
-            page.locator(".age").nth(counter).getAttribute("title"),
-            page.locator(".rank").nth(counter).innerText(),
-        ]);
-
-        //create an article object to push to invalid array
-        const article = {
-            title: title,
-            date: date,
-            rank: rank,
-        };
+        //get the date
+        const date = await page
+            .locator(".age")
+            .nth(counter)
+            .getAttribute("title");
 
         //compare prev and date on counter
-        const d2 = new Date(
-            formatDate(
-                await page.locator(".age").nth(counter).getAttribute("title")
-            )
-        );
+        const d2 = new Date(formatDate(date));
 
         //if the previous date is less than the current article's date, push to invalid array
         if (prev < d2) {
+            //create an article object to push to invalid array
+            const article = {
+                title: await page
+                    .locator(".titleline")
+                    .nth(counter)
+                    .innerText(),
+                date: date,
+                rank: await page.locator(".rank").nth(counter).innerText(),
+            };
             invalid.push(article);
         }
 
@@ -79,6 +76,8 @@ async function sortHackerNewsArticles() {
     } else {
         console.log("All articles are in the correct order.");
     }
+
+    await page.pause();
 
     await browser.close();
 }
